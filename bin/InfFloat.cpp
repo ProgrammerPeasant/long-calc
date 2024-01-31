@@ -828,23 +828,3 @@ void InfFloat::LeadZeroes()
 			break;
 	}
 };
-
-int main()
-{
-	auto a = InfFloat("1.0");
-	a.SetPrecision(20);
-	auto b = InfFloat("512.0");
-	b.SetPrecision(20);
-	auto expected = InfFloat("0.2");
-
-	auto res = a / b;
-	res.SetPrecision(20);
-	std::cout << res << std::endl;
-	res = a * b * -1;
-	std::cout << res << std::endl;
-	res = a + b;
-	std::cout << res << std::endl;
-	res = a - 100;
-	std::cout << res << std::endl;
-	return 0;
-}
