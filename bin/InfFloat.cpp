@@ -6,6 +6,11 @@
 
 class InfFloat
 {
+private:
+	char m_sign;
+	std::deque<char> m_number;
+	int m_decimals;
+	
 public:
 	InfFloat();
 	InfFloat(const std::string &m_number);
@@ -48,10 +53,6 @@ public:
 	static InfFloat Subtract(const InfFloat &left, const InfFloat &right);
 	static InfFloat Multiply(const InfFloat &left, const InfFloat &right);
 
-private:
-	char m_sign;
-	std::deque<char> m_number;
-	int m_decimals;
 };
 
 int InfFloat::CompareNum(const InfFloat &left, const InfFloat &right)
@@ -546,7 +547,7 @@ InfFloat InfFloat::operator-(const InfFloat &other) const
 		}
 	}
 
-	return 0;
+	return -1;
 };
 
 InfFloat InfFloat::operator*(const InfFloat &other) const
@@ -569,7 +570,7 @@ InfFloat InfFloat::operator/(const InfFloat &other) const
 {
 	InfFloat tmp;
 
-	InfFloat Q, R, D, N, zero;
+	InfFloat quotient, remainder, divisor, dividend, zero;
 	zero = 0;
 
 	if (other == zero)
@@ -577,30 +578,30 @@ InfFloat InfFloat::operator/(const InfFloat &other) const
 		return tmp;
 	}
 
-	N = (*this > zero) ? (*this) : (*this * (-1));
-	D = (other > zero) ? (other) : (other * (-1));
-	R.m_sign = '+';
+	dividend = (*this > zero) ? (*this) : (*this * (-1));
+	divisor = (other > zero) ? (other) : (other * (-1));
+	remainder.m_sign = '+';
 
-	while ((N.m_decimals != 0) || (D.m_decimals != 0))
+	while ((dividend.m_decimals != 0) || (divisor.m_decimals != 0))
 	{
-		if (N.m_decimals == 0)
-			N.m_number.push_front('0');
+		if (dividend.m_decimals == 0)
+			dividend.m_number.push_front('0');
 		else
-			N.m_decimals--;
+			dividend.m_decimals--;
 
-		if (D.m_decimals == 0)
-			D.m_number.push_front('0');
+		if (divisor.m_decimals == 0)
+			divisor.m_number.push_front('0');
 		else
-			D.m_decimals--;
+			divisor.m_decimals--;
 	}
-	N.LeadZeroes();
-	D.LeadZeroes();
+	dividend.LeadZeroes();
+	divisor.LeadZeroes();
 
 	int div_precision = (this->m_decimals > other.m_decimals) ? (this->m_decimals) : (other.m_decimals);
 	for (int i = 0; i < div_precision; i++)
-		N.m_number.push_front('0');
+		dividend.m_number.push_front('0');
 
-	int check = InfFloat::CompareNum(N, D);
+	int check = InfFloat::CompareNum(dividend, divisor);
 
 	if (check == 0)
 	{
@@ -612,30 +613,30 @@ InfFloat InfFloat::operator/(const InfFloat &other) const
 	}
 	else
 	{
-		while (!N.m_number.empty())
+		while (!dividend.m_number.empty())
 		{
-			R.m_number.push_front(*(N.m_number.rbegin()));
-			N.m_number.pop_back();
+			remainder.m_number.push_front(*(dividend.m_number.rbegin()));
+			dividend.m_number.pop_back();
 
 			bool is_zero = true;
-			std::deque<char>::const_iterator zero_iter = R.m_number.begin();
-			for (; zero_iter != R.m_number.end(); ++zero_iter)
+			std::deque<char>::const_iterator zero_iter = remainder.m_number.begin();
+			for (; zero_iter != remainder.m_number.end(); ++zero_iter)
 				if (*zero_iter != '0')
 					is_zero = false;
 
-			if ((R >= D) && (!is_zero))
+			if ((remainder >= divisor) && (!is_zero))
 			{
 				int Q_sub = 0;
 				int min = 0;
 				int max = 9;
 
-				while (R >= D)
+				while (remainder >= divisor)
 				{
 					int avg = max - min;
 					int mod_avg = avg / 2;
 					avg = (avg - mod_avg * 2) ? (mod_avg + 1) : (mod_avg);
 
-					int div_check = InfFloat::CompareNum(R, D * avg);
+					int div_check = InfFloat::CompareNum(remainder, divisor * avg);
 
 					if (div_check == 2)
 					{
@@ -644,28 +645,28 @@ InfFloat InfFloat::operator/(const InfFloat &other) const
 					else
 					{
 						Q_sub = Q_sub + avg;
-						R = R - D * avg;
+						remainder = remainder - divisor * avg;
 
 						max = 9;
 					}
 				}
 
-				Q.m_number.push_front(InfFloat::IntToChar(Q_sub));
+				quotient.m_number.push_front(InfFloat::IntToChar(Q_sub));
 
 				bool is_zero = true;
-				std::deque<char>::const_iterator zero_iter = R.m_number.begin();
-				for (; zero_iter != R.m_number.end(); ++zero_iter)
+				std::deque<char>::const_iterator zero_iter = remainder.m_number.begin();
+				for (; zero_iter != remainder.m_number.end(); ++zero_iter)
 					if (*zero_iter != '0')
 						is_zero = false;
 				if (is_zero)
-					R.m_number.clear();
+					remainder.m_number.clear();
 			}
 			else
 			{
-				Q.m_number.push_front('0');
+				quotient.m_number.push_front('0');
 			}
 		}
-		tmp = Q;
+		tmp = quotient;
 	}
 
 	if (((this->m_sign == '-') && (other.m_sign == '-')) || ((this->m_sign == '+') && (other.m_sign == '+')))
@@ -713,7 +714,7 @@ bool InfFloat::operator>(const InfFloat &right) const
 	if (((m_sign == '+') && (right.m_sign == '-')))
 		return true;
 
-	return 0;
+	return -1;
 };
 
 bool InfFloat::operator>=(const InfFloat &right) const
@@ -742,7 +743,7 @@ bool InfFloat::operator<(const InfFloat &right) const
 	if (((m_sign == '+') && (right.m_sign == '-')))
 		return false;
 
-	return 0;
+	return -1;
 };
 
 bool InfFloat::operator<=(const InfFloat &right) const
