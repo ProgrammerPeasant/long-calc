@@ -1,1 +1,0 @@
-add_library(InfFloatLib InfFloat.cpp)
